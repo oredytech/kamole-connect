@@ -33,11 +33,11 @@ const App = () => {
               <ScrollToTop />
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/:slug" element={<ArticlePage />} />
                 <Route path="/categorie/:slug" element={<CategoryPage />} />
                 <Route path="/recherche" element={<SearchPage />} />
                 <Route path="/a-propos" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/:slug" element={<ArticlePage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
