@@ -35,7 +35,7 @@ const SearchPage = () => {
         ) : (
           <div className="space-y-6">
             {posts.map((post) => (
-              <Link key={post.id} to={`/article/${post.slug}`} className="flex gap-4 group border-b border-border pb-6">
+              <Link key={post.id} to={`/${post.slug}`} className="flex gap-4 group border-b border-border pb-6">
                 <img src={getFeaturedImage(post)} alt="" className="w-32 h-24 md:w-48 md:h-32 object-cover shrink-0" loading="lazy" />
                 <div>
                   <h2 className="font-heading text-base md:text-lg font-bold group-hover:text-primary transition-colors leading-snug line-clamp-2">

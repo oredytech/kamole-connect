@@ -45,7 +45,7 @@ const CategoryPage = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post) => (
-                <Link key={post.id} to={`/article/${post.slug}`} className="group">
+                <Link key={post.id} to={`/${post.slug}`} className="group">
                   <div className="relative overflow-hidden aspect-video mb-3">
                     <img src={getFeaturedImage(post)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                   </div>

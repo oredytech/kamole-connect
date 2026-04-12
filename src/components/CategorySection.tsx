@@ -41,8 +41,7 @@ const CategorySection = ({ categorySlug, title, layout = "list" }: CategorySecti
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Main */}
-          <Link to={`/article/${mainPost.slug}`} className="group">
+          <Link to={`/${mainPost.slug}`} className="group">
             <div className="relative overflow-hidden aspect-video mb-3">
               <img src={getFeaturedImage(mainPost)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
             </div>
@@ -52,10 +51,9 @@ const CategorySection = ({ categorySlug, title, layout = "list" }: CategorySecti
             <p className="text-xs text-muted-foreground mt-1">{formatDate(mainPost.date)}</p>
             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{stripHtml(mainPost.excerpt.rendered)}</p>
           </Link>
-          {/* Side list */}
           <div className="space-y-4">
             {sidePosts.map((post) => (
-              <Link key={post.id} to={`/article/${post.slug}`} className="flex gap-3 group">
+              <Link key={post.id} to={`/${post.slug}`} className="flex gap-3 group">
                 <img src={getFeaturedImage(post)} alt="" className="w-24 h-20 object-cover shrink-0" loading="lazy" />
                 <div>
                   <h4 className="font-heading text-sm font-bold group-hover:text-primary transition-colors leading-snug line-clamp-2">
@@ -81,7 +79,7 @@ const CategorySection = ({ categorySlug, title, layout = "list" }: CategorySecti
       </div>
       <div className="space-y-4">
         {posts.map((post) => (
-          <Link key={post.id} to={`/article/${post.slug}`} className="flex gap-4 group border-b border-border pb-4">
+          <Link key={post.id} to={`/${post.slug}`} className="flex gap-4 group border-b border-border pb-4">
             <img src={getFeaturedImage(post)} alt="" className="w-28 h-20 md:w-36 md:h-24 object-cover shrink-0" loading="lazy" />
             <div>
               <h3 className="font-heading text-sm md:text-base font-bold group-hover:text-primary transition-colors leading-snug line-clamp-2">
