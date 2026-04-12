@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Search, Facebook, Phone } from "lucide-react";
-import logo from "@/assets/logo-light.jpg";
+import { Menu, X, Search, Facebook, Phone, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import logoLight from "@/assets/logo-light.jpg";
+import logoDark from "@/assets/logo-dark.jpg";
 
 const navItems = [
   { label: "Accueil", path: "/" },
@@ -17,6 +19,9 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { theme, toggleTheme } = useTheme();
+
+  const logo = theme === "dark" ? logoDark : logoLight;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +44,9 @@ const Header = () => {
           </Link>
 
           <div className="flex items-center gap-3">
+            <button onClick={toggleTheme} className="text-header-foreground hover:text-primary transition-colors" title="Mode sombre/clair">
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="text-header-foreground hover:text-primary transition-colors">
               <Facebook size={18} />
             </a>
@@ -56,7 +64,7 @@ const Header = () => {
 
         {/* Search bar */}
         {searchOpen && (
-          <div className="border-t border-secondary px-4 py-2">
+          <div className="border-t border-border px-4 py-2">
             <form onSubmit={handleSearch} className="container mx-auto flex gap-2">
               <input
                 type="text"
@@ -94,14 +102,14 @@ const Header = () => {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-header border-t border-secondary">
+        <div className="md:hidden bg-header border-t border-border">
           <ul className="flex flex-col">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
                   onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 text-sm font-heading font-semibold uppercase text-header-foreground hover:bg-primary hover:text-primary-foreground transition-colors border-b border-secondary/30"
+                  className="block px-4 py-3 text-sm font-heading font-semibold uppercase text-header-foreground hover:bg-primary hover:text-primary-foreground transition-colors border-b border-border/30"
                 >
                   {item.label}
                 </Link>
