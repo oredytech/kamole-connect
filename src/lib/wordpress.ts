@@ -1,4 +1,4 @@
-const WP_API = "https://totalementactus.net/wp-json/wp/v2";
+const WP_API = "https://kamolemedia.com/wp-json/wp/v2";
 
 export interface WPPost {
   id: number;
