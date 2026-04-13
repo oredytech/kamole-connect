@@ -16,5 +16,38 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function(){ try { var u=new URL(window.location.href); var target=u.searchParams.get('redirect'); if(target){ window.history.replaceState({}, '', '/'); window.history.pushState({}, '', target); } } catch(e) {} })();
+    </script>
+
+   <script>
+window.addEventListener('DOMContentLoaded', () => {
+  const notifyParentOfPath = () => {
+    // Supprimer "/spa" du début du pathname
+    let slug = window.location.pathname.replace(/^\/spa/, '') || '/';
+
+    window.parent.postMessage(
+      {
+        type: 'spa-path-update',
+        slug: slug
+      },
+      '*'
+    );
+  };
+
+  notifyParentOfPath(); // envoyer au premier chargement
+
+  // Envoyer le nouveau slug à chaque navigation (popstate)
+  window.addEventListener('popstate', notifyParentOfPath);
+
+  // Intercepter pushState pour notifications
+  window.history.pushState = new Proxy(window.history.pushState, {
+    apply: function (target, thisArg, argumentsList) {
+      target.apply(thisArg, argumentsList);
+      notifyParentOfPath();
+    }
+  });
+});
+</script>
   </body>
 </html>
