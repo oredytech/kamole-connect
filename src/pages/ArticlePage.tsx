@@ -33,8 +33,8 @@ const ArticlePage = () => {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  const shareUrl = typeof window !== "undefined" ? window.location.origin.replace("/spa", "") + "/" + (post?.slug || "") : "";
-  const shareTitle = post ? decodeHtml(post.title.rendered) : "";
+ const shareUrl = `https://kamolemedia.com/${slug}`;
+ const shareTitle = post ? decodeHtml(post.title.rendered) : "";
 
   const shareLinks = [
     { icon: Facebook, url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, label: "Facebook" },
