@@ -7,10 +7,10 @@ import logoDark from "@/assets/logo-dark.jpg";
 
 const navItems = [
   { label: "Accueil", path: "/" },
-  { label: "Sport", path: "/categorie/totalementsport" },
-  { label: "Culture", path: "/categorie/totalementculture" },
-  { label: "Société", path: "/categorie/totalementsociete" },
-  { label: "Politique", path: "/categorie/totalementpolitique" },
+  { label: "Sports", path: "/categorie/sports" },
+  { label: "Culture", path: "/categorie/culture" },
+  { label: "Société", path: "/categorie/societe" },
+  { label: "Politique", path: "/categorie/politique" },
   { label: "À propos", path: "/a-propos" },
   { label: "Contact", path: "/contact" },
 ];
