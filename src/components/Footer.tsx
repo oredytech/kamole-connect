@@ -18,10 +18,10 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-lg font-bold uppercase text-primary mb-4">Rubriques</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/categorie/totalementsport" className="footer-link">Sport</Link></li>
-              <li><Link to="/categorie/totalementculture" className="footer-link">Culture</Link></li>
-              <li><Link to="/categorie/totalementsociete" className="footer-link">Société</Link></li>
-              <li><Link to="/categorie/totalementpolitique" className="footer-link">Politique</Link></li>
+              <li><Link to="/categorie/sport" className="footer-link">Sports</Link></li>
+              <li><Link to="/categorie/culture" className="footer-link">Culture</Link></li>
+              <li><Link to="/categorie/societe" className="footer-link">Société</Link></li>
+              <li><Link to="/categorie/politique" className="footer-link">Politique</Link></li>
               <li><Link to="/a-propos" className="footer-link">À propos</Link></li>
               <li><Link to="/contact" className="footer-link">Contact</Link></li>
             </ul>
