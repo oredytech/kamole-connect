@@ -147,42 +147,118 @@ export async function fetchPosts(params: {
   }
 }
 
+// ============= Revalidation robuste =============
+// - Déduplication : une seule requête en vol par slug
+// - Throttle : pas plus d'un check toutes les 60s par slug
+// - Comparaison stricte : id + modified (timestamp normalisé)
+// - Notification optionnelle via évènement "wp-post-updated"
+
+const REVALIDATE_THROTTLE = 60 * 1000; // 60s entre 2 checks pour le même slug
+const lastRevalidateAt = new Map<string, number>();
+const inflightRevalidate = new Map<string, Promise<WPPost | null>>();
+const inflightFetchPost = new Map<string, Promise<WPPost>>();
+
+function normalizeModified(m?: string): string {
+  if (!m) return "";
+  // WordPress renvoie parfois "2026-05-01T10:20:30" sans Z, on normalise
+  return new Date(m).toISOString();
+}
+
+function isCachedFresh(cached: CacheEntry<WPPost>, remoteModified?: string, remoteId?: number): boolean {
+  if (!remoteModified) return true; // pas d'info → on garde
+  if (remoteId != null && cached.data.id !== remoteId) return false;
+  return normalizeModified(cached.modified) === normalizeModified(remoteModified);
+}
+
+function notifyPostUpdated(slug: string, post: WPPost) {
+  try {
+    window.dispatchEvent(new CustomEvent("wp-post-updated", { detail: { slug, post } }));
+  } catch {}
+}
+
 export async function fetchPost(slug: string): Promise<WPPost> {
   const key = `post_${slug}`;
   const cached = readCache<WPPost>(key);
 
-  // Si on a un cache, on le retourne immédiatement, mais on revalide en arrière-plan
-  // via la date "modified"
   if (cached) {
-    // Revalidation asynchrone : si la date a changé, on remplace le cache
-    revalidatePost(slug, cached.modified).catch(() => {});
+    // SWR : on retourne le cache et on revalide en arrière-plan (throttlé + dédupé)
+    revalidatePost(slug).catch(() => {});
     return cached.data;
   }
 
-  const res = await fetch(`${WP_API}/posts?slug=${slug}&_embed=true`);
-  if (!res.ok) throw new Error("Failed to fetch post");
-  const posts: WPPost[] = await res.json();
-  if (!posts.length) throw new Error("Post not found");
-  const post = posts[0];
-  writeCache(key, post, post.modified);
-  return post;
+  // Pas de cache : déduplique les requêtes simultanées
+  const pending = inflightFetchPost.get(slug);
+  if (pending) return pending;
+
+  const p = (async () => {
+    const res = await fetch(`${WP_API}/posts?slug=${slug}&_embed=true`);
+    if (!res.ok) throw new Error("Failed to fetch post");
+    const posts: WPPost[] = await res.json();
+    if (!posts.length) throw new Error("Post not found");
+    const post = posts[0];
+    writeCache(key, post, post.modified);
+    lastRevalidateAt.set(slug, Date.now());
+    return post;
+  })().finally(() => inflightFetchPost.delete(slug));
+
+  inflightFetchPost.set(slug, p);
+  return p;
 }
 
-async function revalidatePost(slug: string, cachedModified?: string): Promise<void> {
-  try {
-    // On demande seulement les champs nécessaires pour comparer
-    const res = await fetch(`${WP_API}/posts?slug=${slug}&_fields=id,modified`);
-    if (!res.ok) return;
-    const list = await res.json();
-    const remoteModified = list?.[0]?.modified;
-    if (remoteModified && remoteModified !== cachedModified) {
-      // Article modifié côté serveur : on rafraîchit
+async function revalidatePost(slug: string): Promise<WPPost | null> {
+  // Throttle
+  const last = lastRevalidateAt.get(slug) || 0;
+  if (Date.now() - last < REVALIDATE_THROTTLE) return null;
+
+  // Déduplication
+  const inflight = inflightRevalidate.get(slug);
+  if (inflight) return inflight;
+
+  const key = `post_${slug}`;
+
+  const task = (async (): Promise<WPPost | null> => {
+    try {
+      // 1) Requête légère pour comparer id + modified
+      const headRes = await fetch(`${WP_API}/posts?slug=${slug}&_fields=id,modified`);
+      if (!headRes.ok) return null;
+      const head = await headRes.json();
+      const remote = head?.[0];
+      if (!remote) return null;
+
+      const cached = readCache<WPPost>(key);
+      if (cached && isCachedFresh(cached, remote.modified, remote.id)) {
+        // Cache toujours valide : on rafraîchit juste le timestamp pour éviter
+        // de reposer la même question trop tôt
+        lastRevalidateAt.set(slug, Date.now());
+        return cached.data;
+      }
+
+      // 2) L'article a réellement changé → on récupère la version complète
       const fresh = await fetch(`${WP_API}/posts?slug=${slug}&_embed=true`);
-      if (!fresh.ok) return;
+      if (!fresh.ok) return null;
       const posts: WPPost[] = await fresh.json();
-      if (posts.length) writeCache(`post_${slug}`, posts[0], posts[0].modified);
+      if (!posts.length) return null;
+
+      const post = posts[0];
+      writeCache(key, post, post.modified);
+      lastRevalidateAt.set(slug, Date.now());
+      notifyPostUpdated(slug, post);
+      return post;
+    } catch {
+      return null;
+    } finally {
+      inflightRevalidate.delete(slug);
     }
-  } catch {}
+  })();
+
+  inflightRevalidate.set(slug, task);
+  return task;
+}
+
+/** Force la revalidation d'un article (ignore le throttle). */
+export async function forceRevalidatePost(slug: string): Promise<WPPost | null> {
+  lastRevalidateAt.delete(slug);
+  return revalidatePost(slug);
 }
 
 export async function fetchCategories(): Promise<WPCategory[]> {
